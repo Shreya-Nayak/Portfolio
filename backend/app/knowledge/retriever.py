@@ -6,16 +6,23 @@ from .store import VectorStore
 
 class Retriever:
     def __init__(self, database_url: str, embedding_model: str) -> None:
+        print("[RAG] Starting VectorStore initialization...", flush=True)
         self.store = VectorStore(database_url)
+        print("[RAG] VectorStore initialized.", flush=True)
+
+        print(f"[RAG] Loading embedding model: {embedding_model}", flush=True)
         self.embedder = EmbeddingModel(embedding_model)
+        print("[RAG] Embedding model loaded.", flush=True)
 
     def retrieve(self, query: str, top_k: int = 5) -> list[dict]:
+        print("[RAG] Encoding query...", flush=True)
         query_embedding = self.embedder.encode([query])[0]
-        return self.store.search(query_embedding, top_k)
+        print("[RAG] Query encoded. Searching PostgreSQL...", flush=True)
 
-    def close(self) -> None:
-        self.store.close()
+        results = self.store.search(query_embedding, top_k)
 
+        print(f"[RAG] PostgreSQL search completed. Results: {len(results)}", flush=True)
+        return results
 
 def retrieve(
     query: str,
