@@ -9,7 +9,7 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 class Settings(BaseSettings):
     knowledge_dir: Path = ROOT_DIR / "knowledge"
     database_url: str = ""
-    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,https://shreya-portfolio-ketjkkh1z-shreya-nayaks-projects.vercel.app"
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     default_top_k: int = 5
     llm_provider: str = "gemini"
