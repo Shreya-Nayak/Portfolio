@@ -1,116 +1,141 @@
-import json
-import math
-import sqlite3
-from pathlib import Path
+from __future__ import annotations
+
+from datetime import datetime
 from typing import Any
+
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import DateTime, Integer, String, Text, UniqueConstraint, create_engine, func, select, text
+from sqlalchemy.dialects.postgresql import JSONB, insert
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 from .models import KnowledgeChunk
 
+EMBEDDING_DIMENSION = 384
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class KnowledgeDocument(Base):
+    __tablename__ = "knowledge_documents"
+
+    source: Mapped[str] = mapped_column(String(512), primary_key=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class KnowledgeChunkRow(Base):
+    __tablename__ = "knowledge_chunks"
+    __table_args__ = (UniqueConstraint("source", "chunk_index", name="uq_knowledge_source_chunk"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source: Mapped[str] = mapped_column(String(512), nullable=False, index=True)
+    chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    metadata_json: Mapped[dict[str, Any]] = mapped_column("metadata", JSONB, nullable=False)
+    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENSION), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
 
 class VectorStore:
-    def __init__(self, directory: Path) -> None:
-        directory.mkdir(parents=True, exist_ok=True)
-        self.database_path = directory / "knowledge.sqlite3"
-        self.connection = sqlite3.connect(self.database_path)
-        self.connection.row_factory = sqlite3.Row
-        self.connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS chunks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                source TEXT NOT NULL,
-                content_hash TEXT NOT NULL,
-                chunk_index INTEGER NOT NULL,
-                text TEXT NOT NULL,
-                metadata TEXT NOT NULL,
-                embedding TEXT NOT NULL,
-                UNIQUE(source, chunk_index)
+    """Persistent PostgreSQL + pgvector store for grounded knowledge chunks."""
+
+    def __init__(self, database_url: str) -> None:
+        if not database_url:
+            raise RuntimeError("DATABASE_URL is required for PostgreSQL knowledge storage")
+        if database_url.startswith("postgresql://"):
+            database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+        self.engine: Engine = create_engine(database_url, pool_pre_ping=True, pool_recycle=1800)
+        self.session_factory = sessionmaker(self.engine, expire_on_commit=False)
+        try:
+            with self.engine.begin() as connection:
+                connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+            Base.metadata.create_all(self.engine)
+            self._ensure_vector_index()
+        except Exception as error:
+            self.engine.dispose()
+            raise RuntimeError(
+                "Could not initialize PostgreSQL/pgvector. Check DATABASE_URL and ensure pgvector is available."
+            ) from error
+
+    def _ensure_vector_index(self) -> None:
+        with self.engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    CREATE INDEX IF NOT EXISTS knowledge_chunks_embedding_hnsw
+                    ON knowledge_chunks USING hnsw (embedding vector_cosine_ops)
+                    """
+                )
             )
-            """
-        )
-        self.connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS documents (
-                source TEXT PRIMARY KEY,
-                content_hash TEXT NOT NULL
-            )
-            """
-        )
-        self.connection.execute(
-            "CREATE INDEX IF NOT EXISTS idx_chunks_source ON chunks(source)"
-        )
-        self.connection.commit()
 
     def close(self) -> None:
-        self.connection.close()
+        self.engine.dispose()
 
     def source_hash(self, source: str) -> str | None:
-        row = self.connection.execute(
-            "SELECT content_hash FROM documents WHERE source = ?", (source,)
-        ).fetchone()
-        return row["content_hash"] if row else None
+        with self.session_factory() as session:
+            document = session.get(KnowledgeDocument, source)
+            return document.content_hash if document else None
 
     def document_sources(self) -> set[str]:
-        return {
-            row["source"]
-            for row in self.connection.execute("SELECT source FROM documents")
-        }
+        with self.session_factory() as session:
+            return set(session.scalars(select(KnowledgeDocument.source)).all())
 
     def record_document(self, source: str, content_hash: str) -> None:
-        self.connection.execute(
-            """
-            INSERT INTO documents (source, content_hash)
-            VALUES (?, ?)
-            ON CONFLICT(source) DO UPDATE SET content_hash = excluded.content_hash
-            """,
-            (source, content_hash),
-        )
+        with self.session_factory.begin() as session:
+            statement = insert(KnowledgeDocument).values(source=source, content_hash=content_hash)
+            session.execute(statement.on_conflict_do_update(
+                index_elements=[KnowledgeDocument.source],
+                set_={"content_hash": statement.excluded.content_hash, "updated_at": func.now()},
+            ))
 
     def remove_source(self, source: str) -> None:
-        self.connection.execute("DELETE FROM chunks WHERE source = ?", (source,))
-        self.connection.execute("DELETE FROM documents WHERE source = ?", (source,))
+        with self.session_factory.begin() as session:
+            session.query(KnowledgeChunkRow).filter_by(source=source).delete()
+            session.query(KnowledgeDocument).filter_by(source=source).delete()
 
-    def add_chunks(
-        self, chunks: list[KnowledgeChunk], embeddings: list[list[float]]
-    ) -> None:
-        self.connection.executemany(
-            """
-            INSERT INTO chunks
-                (source, content_hash, chunk_index, text, metadata, embedding)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            [
-                (
-                    chunk.source,
-                    chunk.content_hash,
-                    chunk.chunk_index,
-                    chunk.text,
-                    json.dumps(chunk.metadata()),
-                    json.dumps(embedding),
+    def add_chunks(self, chunks: list[KnowledgeChunk], embeddings: list[list[float]]) -> None:
+        if any(len(embedding) != EMBEDDING_DIMENSION for embedding in embeddings):
+            raise ValueError(f"Every embedding must have dimension {EMBEDDING_DIMENSION}")
+        with self.session_factory.begin() as session:
+            session.add_all([
+                KnowledgeChunkRow(
+                    source=chunk.source,
+                    chunk_index=chunk.chunk_index,
+                    content=chunk.text,
+                    metadata_json=chunk.metadata(),
+                    source_hash=chunk.content_hash,
+                    embedding=embedding,
                 )
                 for chunk, embedding in zip(chunks, embeddings, strict=True)
-            ],
-        )
-        self.connection.commit()
+            ])
 
     def search(self, embedding: list[float], top_k: int) -> list[dict[str, Any]]:
-        results: list[dict[str, Any]] = []
-        for row in self.connection.execute(
-            "SELECT text, metadata, embedding FROM chunks"
-        ):
-            stored = json.loads(row["embedding"])
-            score = sum(left * right for left, right in zip(embedding, stored))
-            if not math.isfinite(score):
-                continue
-            results.append(
-                {
-                    "text": row["text"],
-                    "metadata": json.loads(row["metadata"]),
-                    "similarity_score": score,
-                }
-            )
-        return sorted(
-            results, key=lambda result: result["similarity_score"], reverse=True
-        )[:top_k]
+        if len(embedding) != EMBEDDING_DIMENSION:
+            raise ValueError(f"Query embedding must have dimension {EMBEDDING_DIMENSION}")
+        distance = KnowledgeChunkRow.embedding.cosine_distance(embedding)
+        statement = (
+            select(KnowledgeChunkRow.content, KnowledgeChunkRow.metadata_json, distance.label("distance"))
+            .order_by(distance)
+            .limit(top_k)
+        )
+        with self.session_factory() as session:
+            rows = session.execute(statement).all()
+        return [
+            {
+                "text": row.content,
+                "metadata": row.metadata_json,
+                "similarity_score": max(0.0, 1.0 - float(row.distance)),
+            }
+            for row in rows
+        ]
 
     def count(self) -> int:
-        return int(self.connection.execute("SELECT COUNT(*) FROM chunks").fetchone()[0])
+        with self.session_factory() as session:
+            return session.query(KnowledgeChunkRow).count()

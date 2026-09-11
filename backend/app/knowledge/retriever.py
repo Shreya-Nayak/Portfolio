@@ -1,13 +1,12 @@
 from collections.abc import Callable
-from pathlib import Path
 
 from .embeddings import EmbeddingModel
 from .store import VectorStore
 
 
 class Retriever:
-    def __init__(self, vector_store_dir: Path, embedding_model: str) -> None:
-        self.store = VectorStore(vector_store_dir)
+    def __init__(self, database_url: str, embedding_model: str) -> None:
+        self.store = VectorStore(database_url)
         self.embedder = EmbeddingModel(embedding_model)
 
     def retrieve(self, query: str, top_k: int = 5) -> list[dict]:
@@ -21,14 +20,14 @@ class Retriever:
 def retrieve(
     query: str,
     top_k: int = 5,
-    vector_store_dir: Path | None = None,
+    database_url: str | None = None,
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
     embedder_factory: Callable[[str], EmbeddingModel] = EmbeddingModel,
 ) -> list[dict]:
-    if vector_store_dir is None:
-        raise ValueError("vector_store_dir is required for retrieval")
+    if database_url is None:
+        raise ValueError("database_url is required for retrieval")
     retriever = Retriever.__new__(Retriever)
-    retriever.store = VectorStore(vector_store_dir)
+    retriever.store = VectorStore(database_url)
     retriever.embedder = embedder_factory(embedding_model)
     try:
         return retriever.retrieve(query, top_k)

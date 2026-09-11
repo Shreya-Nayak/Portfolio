@@ -7,7 +7,7 @@ import { profile } from "@/lib/data";
 
 export function AboutSection() {
   return (
-    <section id="about" className="scroll-mt-28 py-20 sm:py-24 lg:py-28">
+    <section id="about" data-reveal-section className="scroll-mt-28 py-20 sm:py-24 lg:py-28">
       <Container>
         <div className="space-y-12">
           <SectionHeader
@@ -19,7 +19,7 @@ export function AboutSection() {
 
           <Grid base={1} lg={2} gap="lg">
             <Reveal>
-              <div className="space-y-6">
+              <div data-reveal-item className="space-y-6">
                 <p className="text-h3 text-foreground">
                   I am interested in what happens around the code: how systems
                   are deployed, connected, automated, secured, and made useful.
@@ -34,7 +34,7 @@ export function AboutSection() {
             </Reveal>
 
             <Reveal delay={0.08}>
-              <Surface className="p-6 sm:p-8">
+              <Surface data-reveal-item className="p-6 sm:p-8">
                 <div className="space-y-6">
                   <div>
                     <p className="text-tech text-primary">A few coordinates</p>

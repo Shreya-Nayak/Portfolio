@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+import os
 from pathlib import Path
 
 from backend.app.knowledge.chunker import chunk_document
@@ -29,12 +30,17 @@ class KnowledgePipelineTests(unittest.TestCase):
         self.assertIn("More", chunks[1].text)
 
     def test_store_returns_most_similar_chunk(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            store = VectorStore(Path(directory))
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            self.skipTest("DATABASE_URL is not configured for PostgreSQL integration tests")
+        store = VectorStore(database_url)
+        try:
             from backend.app.knowledge.models import KnowledgeChunk
             knowledge_chunks = [KnowledgeChunk("one", "one.md", "general", "One", 0, "one")]
-            store.add_chunks(knowledge_chunks, [[1.0, 0.0]])
-            results = store.search([0.9, 0.1], 1)
+            embedding = [1.0] + [0.0] * 383
+            store.add_chunks(knowledge_chunks, [embedding])
+            results = store.search([0.9] + [0.1 / 383] * 383, 1)
+        finally:
             store.close()
 
         self.assertEqual(results[0]["metadata"]["source"], "one.md")

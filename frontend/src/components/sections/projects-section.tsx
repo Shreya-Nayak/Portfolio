@@ -30,7 +30,7 @@ function ProjectPreview({
       transition={{ type: "spring", stiffness: 180, damping: 18 }}
       className={`relative min-h-[22rem] overflow-hidden border border-border/60 bg-gradient-to-br ${previewTints[index % previewTints.length]} p-6 sm:p-8`}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.06),transparent_18%),radial-gradient(circle_at_80%_80%,rgba(230,184,92,0.08),transparent_22%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.06),transparent_18%),radial-gradient(circle_at_80%_80%,rgba(244,162,97,0.08),transparent_22%)]" />
       <div className="relative flex h-full min-h-[20rem] flex-col justify-between">
         <div className="flex items-center justify-between">
           <span className="text-tech text-primary">Project {number}</span>
@@ -45,7 +45,7 @@ function ProjectPreview({
               <div className="h-full rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/18 to-transparent" />
             </div>
             <div className="h-28 rounded-3xl border border-border/60 bg-white/5 p-3">
-              <div className="h-full rounded-2xl border border-border/40 bg-[radial-gradient(circle_at_center,rgba(230,184,92,0.12),transparent_60%)]" />
+              <div className="h-full rounded-2xl border border-border/40 bg-[radial-gradient(circle_at_center,rgba(244,162,97,0.12),transparent_60%)]" />
             </div>
             <div className="h-28 rounded-3xl border border-border/60 bg-white/5 p-3">
               <div className="flex h-full items-end justify-center rounded-2xl border border-primary/20 bg-gradient-to-t from-primary/15 to-transparent pb-3">
@@ -67,7 +67,8 @@ export function ProjectsSection() {
   return (
     <section
       id="projects"
-      className="scroll-mt-28 overflow-hidden border-y border-border/60 bg-[#0a0b0c] py-20 sm:py-28 lg:py-36"
+      data-reveal-section
+      className="scroll-mt-28 overflow-hidden border-y border-border/60 bg-secondary py-20 sm:py-28 lg:py-36"
     >
       <Container className="max-w-[100rem]">
         <div className="space-y-14">
@@ -78,7 +79,7 @@ export function ProjectsSection() {
             description="Projects that move between concurrency, language models, and financial time-series research. Different problems, the same instinct: understand the system underneath."
           />
 
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-end">
+          <div data-reveal-item className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-end">
             <Reveal>
               <ProjectPreview
                 number={activeProject.number}

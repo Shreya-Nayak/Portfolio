@@ -7,15 +7,11 @@ from .assistant.providers import build_provider
 from .assistant.service import AssistantService
 from .config import Settings
 from .knowledge.retriever import Retriever
+from .knowledge.store import VectorStore
 
 
 app = FastAPI(title="Portfolio API")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=Settings().cors_origin_list(), allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
 
 
 class SearchRequest(BaseModel):
@@ -31,7 +27,7 @@ class KnowledgeService:
     def __init__(self) -> None:
         settings = Settings()
         self.retriever = Retriever(
-            settings.resolved_vector_store_dir(), settings.embedding_model
+            settings.database_url, settings.embedding_model
         )
 
     def retrieve(self, query: str, top_k: int) -> list[dict]:
@@ -44,7 +40,15 @@ assistant_service: AssistantService | None = None
 
 @app.get("/health")
 async def health() -> dict[str, str]:
-    return {"status": "ok"}
+    settings = Settings()
+    if not settings.database_url:
+        return {"status": "ok", "database": "not_configured"}
+    try:
+        store = VectorStore(settings.database_url)
+        store.close()
+        return {"status": "ok", "database": "ok"}
+    except RuntimeError:
+        return {"status": "ok", "database": "unavailable"}
 
 
 @app.post("/api/knowledge/search")

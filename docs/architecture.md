@@ -2,20 +2,20 @@
 
 ## Overview
 
-This repository is a monorepo containing a Next.js frontend and a FastAPI backend, with a future grounded AI/RAG system layered on top of approved personal knowledge.
+This repository is a monorepo containing a Next.js frontend and a FastAPI backend, with a grounded AI/RAG system layered on top of approved personal knowledge.
 
 ## Current Components
 
 - Frontend: Next.js + React + TypeScript
 - Backend: FastAPI + Python
 
-## Future AI Architecture
+## Current AI Architecture
 
-- Gemini generation
-- Qdrant vector retrieval
-- Neo4j knowledge graph
+- Sentence Transformers (`all-MiniLM-L6-v2`) embeddings
+- PostgreSQL with the pgvector extension for persistent vector storage and cosine retrieval
+- Gemini generation over retrieved Markdown context
 
-These are planned but not implemented yet.
+Qdrant and Neo4j are not used by this application. They may appear in the approved professional experience knowledge as technologies from Shreya's Wipro work, but they are not part of this portfolio runtime.
 
 ## Knowledge
 

@@ -1,26 +1,28 @@
 # Knowledge Pipeline
 
-Phase D turns the approved Markdown files in `knowledge/` into a local searchable index.
+The knowledge layer turns the approved Markdown files in `knowledge/` into a persistent PostgreSQL + pgvector index.
 
 ## Flow
 
-`knowledge/**/*.md` is discovered recursively, loaded as UTF-8, split at Markdown headings, embedded with the configured local Sentence Transformer, and stored in `backend/data/vector_store/knowledge.sqlite3`.
+`knowledge/**/*.md` is discovered recursively, loaded as UTF-8, split at Markdown headings, embedded with the local `sentence-transformers/all-MiniLM-L6-v2` model, and stored in PostgreSQL.
 
-Each stored row contains the chunk text, normalized embedding, source path, category, title, chunk index, and source content hash. The SQLite store is intentionally small and transparent for this portfolio project; generated files are ignored by Git.
+The `knowledge_chunks` table stores chunk text, JSON metadata, source hash, timestamps, and a `vector(384)` embedding. `knowledge_documents` stores one hash per source document for incremental ingestion. Cosine similarity is converted to `1 - cosine_distance`, preserving the existing relevance-score interpretation.
+
+The application uses PostgreSQL with the pgvector extension because it provides durable relational storage and database-side vector similarity search without introducing a separate vector service.
 
 ## Incremental ingestion
 
 The ingestion script hashes each Markdown file. Unchanged sources are skipped. New or changed sources are re-chunked and re-embedded, while deleted sources are removed from the store. Use `--force` to rebuild every source.
 
 ```powershell
+docker run --name portfolio-postgres --env POSTGRES_PASSWORD=portfolio --env POSTGRES_DB=portfolio --publish 5432:5432 --detach pgvector/pgvector:pg17
 Set-Location backend
 ..\.venv\Scripts\python.exe -m pip install -r requirements.txt
 Set-Location ..
 ..\backend\.venv\Scripts\python.exe scripts\ingest_knowledge.py
-..\backend\.venv\Scripts\python.exe scripts\ingest_knowledge.py --force
 ```
 
-The first embedding run downloads the configured model into the local model cache. No paid embedding API is used.
+The first embedding run downloads the configured model into the local model cache. No paid embedding API is used. Set `DATABASE_URL=postgresql+psycopg://postgres:portfolio@localhost:5432/portfolio` in a local ignored `backend/.env` before ingesting.
 
 ## Backend and search
 
@@ -40,4 +42,4 @@ Invoke-RestMethod `
   -Body '{"query":"What projects has Shreya worked on?","top_k":5}'
 ```
 
-The vector store must be populated before search results are available. The Markdown files remain the only source of personal information.
+The pgvector database must be populated before search results are available. The Markdown files remain the only source of personal information.

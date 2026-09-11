@@ -5,7 +5,7 @@ import { journeyMilestones } from "@/lib/data";
 
 export function JourneySection() {
   return (
-    <section id="journey" className="scroll-mt-28 py-20 sm:py-24 lg:py-28">
+    <section id="journey" data-reveal-section className="scroll-mt-28 py-20 sm:py-24 lg:py-28">
       <Container>
         <div className="space-y-12">
           <SectionHeader
@@ -18,7 +18,7 @@ export function JourneySection() {
           <div className="grid gap-4 lg:grid-cols-5">
             {journeyMilestones.map((milestone, index) => (
               <Reveal key={milestone.stage} delay={index * 0.06}>
-                <article className="relative flex h-full flex-col gap-4 rounded-3xl border border-border/60 bg-white/3 p-5 sm:p-6">
+                <article data-reveal-item className="relative flex h-full flex-col gap-4 rounded-3xl border border-border/60 bg-white/3 p-5 sm:p-6">
                   <div className="flex items-center justify-between">
                     <span className="text-tech text-primary">
                       {milestone.stage}

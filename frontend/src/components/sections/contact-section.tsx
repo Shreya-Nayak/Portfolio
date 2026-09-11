@@ -9,7 +9,7 @@ import { socialLinks } from "@/lib/data";
 
 export function ContactSection() {
   return (
-    <section id="contact" className="scroll-mt-28 py-20 sm:py-24 lg:py-28">
+    <section id="contact" data-reveal-section className="scroll-mt-28 py-20 sm:py-24 lg:py-28">
       <Container>
         <div className="space-y-12">
           <SectionHeader
@@ -21,7 +21,7 @@ export function ContactSection() {
 
           <Grid base={1} xl={2} gap="lg">
             <Reveal>
-              <div className="space-y-6">
+              <div data-reveal-item className="space-y-6">
                 <p className="text-h3 text-foreground">
                   Ask about the systems, projects, education, and experience
                   behind the page.
@@ -38,7 +38,7 @@ export function ContactSection() {
             </Reveal>
 
             <Reveal delay={0.08}>
-              <Surface className="p-6 sm:p-8">
+              <Surface data-reveal-item className="p-6 sm:p-8">
                 <div className="space-y-5">
                   <div>
                     <p className="text-tech text-primary">Contact methods</p>

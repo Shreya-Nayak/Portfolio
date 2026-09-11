@@ -17,7 +17,7 @@ from app.knowledge.store import VectorStore  # noqa: E402
 def ingest(force: bool = False) -> dict[str, int]:
     settings = Settings()
     documents = load_markdown_documents(settings.resolved_knowledge_dir())
-    store = VectorStore(settings.resolved_vector_store_dir())
+    store = VectorStore(settings.database_url)
     changed_documents = [
         document
         for document in documents
@@ -40,12 +40,8 @@ def ingest(force: bool = False) -> dict[str, int]:
             store.remove_source(document.source)
         store.add_chunks(chunks, embeddings)
         embeddings_generated = len(embeddings)
-    else:
-        store.connection.commit()
-
     for document in changed_documents:
         store.record_document(document.source, document.content_hash)
-    store.connection.commit()
 
     indexed_count = store.count()
     store.close()

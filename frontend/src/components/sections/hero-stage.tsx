@@ -35,12 +35,12 @@ export function HeroStage() {
       ref={stageRef}
       onPointerMove={handlePointerMove}
       onPointerLeave={resetPointer}
-      className="relative min-h-[calc(100svh-5.5rem)] overflow-hidden border-b border-border/70 bg-[#080909]"
+      className="relative min-h-[calc(100svh-5.5rem)] overflow-hidden border-b border-border/70 bg-background"
     >
       <motion.div
         aria-hidden="true"
         style={{ x: springX, y: springY }}
-        className="pointer-events-none absolute -left-16 top-20 h-[34rem] w-[34rem] rounded-full bg-[radial-gradient(circle,rgba(230,184,92,0.16),transparent_68%)] blur-3xl"
+        className="pointer-events-none absolute -left-16 top-20 h-[34rem] w-[34rem] rounded-full bg-[radial-gradient(circle,rgba(244,162,97,0.16),transparent_68%)] blur-3xl"
       />
       <motion.div
         aria-hidden="true"

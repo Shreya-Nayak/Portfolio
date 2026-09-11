@@ -7,7 +7,7 @@ import { skillGroups } from "@/lib/data";
 
 export function SkillsSection() {
   return (
-    <section id="skills" className="scroll-mt-28 py-20 sm:py-24 lg:py-28">
+    <section id="skills" data-reveal-section className="scroll-mt-28 py-20 sm:py-24 lg:py-28">
       <Container>
         <div className="space-y-12">
           <SectionHeader
@@ -19,8 +19,8 @@ export function SkillsSection() {
 
           <Grid base={1} xl={2} gap="lg">
             <Reveal>
-              <Surface className="relative overflow-hidden p-6 sm:p-8">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(230,184,92,0.16),transparent_35%),radial-gradient(circle_at_20%_80%,rgba(230,184,92,0.08),transparent_24%)]" />
+              <Surface data-reveal-item className="relative overflow-hidden p-6 sm:p-8">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(244,162,97,0.16),transparent_35%),radial-gradient(circle_at_20%_80%,rgba(244,162,97,0.08),transparent_24%)]" />
                 <div className="relative space-y-6">
                   <div>
                     <p className="text-tech text-primary">Current direction</p>
@@ -51,7 +51,7 @@ export function SkillsSection() {
             </Reveal>
 
             <Reveal delay={0.08}>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div data-reveal-item className="grid gap-4 sm:grid-cols-2">
                 {skillGroups.map((group, index) => (
                   <Surface
                     key={group.label}

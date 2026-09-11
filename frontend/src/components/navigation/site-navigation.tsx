@@ -7,9 +7,11 @@ import { profile } from "@/lib/data";
 import { LinkButton } from "@/components/ui/link-button";
 
 const navItems = [
+  { label: "Home", href: "/" },
   { label: "About", href: "/about" },
-  { label: "Work", href: "/work" },
+  { label: "Experience", href: "/experience" },
   { label: "Projects", href: "/projects" },
+  { label: "Skills", href: "/skills" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
@@ -22,7 +24,7 @@ export function SiteNavigation() {
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const sections = useMemo(
-    () => ["hero", "about", "work", "projects", "contact"],
+    () => ["hero", "about", "experience", "projects", "skills", "contact"],
     [],
   );
 
@@ -111,12 +113,12 @@ export function SiteNavigation() {
     >
       <div className="mx-auto flex w-full max-w-(--container-width) items-center justify-between px-(--page-padding) py-4">
         <Link
-          href="#hero"
+          href="/"
           className="focus-ring inline-flex items-center gap-3 rounded-full px-2 py-1 transition hover:opacity-90"
           aria-label={`${profile.name} home`}
         >
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white/5 text-tech text-primary">
-            {profile.name.slice(1, 3).toUpperCase()}
+            {profile.name.split(" ").map((part) => part[0]).join("")}
           </span>
           <span className="hidden sm:block">
             <span className="block text-sm font-medium text-foreground">
@@ -156,12 +158,6 @@ export function SiteNavigation() {
             Talk to the portfolio
           </LinkButton>
         </nav>
-
-        <div className="hidden items-center gap-3 lg:flex">
-          <LinkButton href="/contact" variant="secondary" size="sm">
-            Contact
-          </LinkButton>
-        </div>
 
         <button
           ref={menuButtonRef}
