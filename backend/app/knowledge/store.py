@@ -49,8 +49,17 @@ class VectorStore:
     def __init__(self, database_url: str, initialize_schema: bool = False) -> None:
         if not database_url:
             raise RuntimeError("DATABASE_URL is required for PostgreSQL knowledge storage")
+        
         if database_url.startswith("postgresql://"):
             database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+            
+        # Enforce SSL for external Render connections
+        if "localhost" not in database_url and "127.0.0.1" not in database_url:
+            if "?" not in database_url:
+                database_url += "?sslmode=require"
+            elif "sslmode=" not in database_url:
+                database_url += "&sslmode=require"
+
         self.engine: Engine = create_engine(database_url, pool_pre_ping=True, pool_recycle=1800)
         self.session_factory = sessionmaker(self.engine, expire_on_commit=False)
         try:

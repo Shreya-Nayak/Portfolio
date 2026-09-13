@@ -1,18 +1,13 @@
 from collections.abc import Sequence
 
-
 class EmbeddingModel:
     def __init__(self, model_name: str) -> None:
-        from sentence_transformers import SentenceTransformer
-
+        from fastembed import TextEmbedding
+        
         self.model_name = model_name
-        self._model = SentenceTransformer(model_name)
+        self._model = TextEmbedding(model_name)
 
     def encode(self, texts: Sequence[str]) -> list[list[float]]:
-        vectors = self._model.encode(
-            list(texts),
-            normalize_embeddings=True,
-            convert_to_numpy=True,
-            show_progress_bar=False,
-        )
-        return vectors.tolist()
+        # fastembed yields numpy arrays, which we convert to standard lists
+        vectors = list(self._model.embed(list(texts)))
+        return [vector.tolist() for vector in vectors]

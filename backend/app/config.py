@@ -1,10 +1,7 @@
 from pathlib import Path
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 ROOT_DIR = Path(__file__).resolve().parents[2]
-
 
 class Settings(BaseSettings):
     knowledge_dir: Path = ROOT_DIR / "knowledge"
@@ -15,7 +12,7 @@ class Settings(BaseSettings):
     llm_provider: str = "gemini"
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.6-flash"
-    retrieval_score_threshold: float = 0.35
+    retrieval_score_threshold: float = 0.50
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
