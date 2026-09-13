@@ -9,7 +9,9 @@ export function PageFrame({ children }: { children: ReactNode }) {
       <div data-scroll-progress className="scroll-progress" />
       <div aria-hidden="true" className="background-shell" />
       <SiteNavigation />
-      <div className="relative z-10" data-page-content>{children}</div>
+      <div className="relative z-10" data-page-content>
+        {children}
+      </div>
       <FooterSection />
       <GsapPageEffects />
     </main>

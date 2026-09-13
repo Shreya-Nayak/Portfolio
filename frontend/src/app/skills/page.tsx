@@ -8,7 +8,9 @@ export default function SkillsPage() {
       <div className="border-b border-border/60 py-16 sm:py-24">
         <Container>
           <p className="text-tech text-primary">Skills / 05</p>
-          <h1 className="mt-5 max-w-4xl text-h1">A wide technical surface, from application layers to infrastructure.</h1>
+          <h1 className="mt-5 max-w-4xl text-h1">
+            A wide technical surface, from application layers to infrastructure.
+          </h1>
         </Container>
       </div>
       <SkillsSection />

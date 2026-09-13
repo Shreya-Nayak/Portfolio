@@ -7,7 +7,11 @@ import { profile } from "@/lib/data";
 
 export function AboutSection() {
   return (
-    <section id="about" data-reveal-section className="scroll-mt-28 py-20 sm:py-24 lg:py-28">
+    <section
+      id="about"
+      data-reveal-section
+      className="scroll-mt-28 py-20 sm:py-24 lg:py-28"
+    >
       <Container>
         <div className="space-y-12">
           <SectionHeader

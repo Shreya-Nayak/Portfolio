@@ -79,7 +79,10 @@ export function ProjectsSection() {
             description="Projects that move between concurrency, language models, and financial time-series research. Different problems, the same instinct: understand the system underneath."
           />
 
-          <div data-reveal-item className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-end">
+          <div
+            data-reveal-item
+            className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-end"
+          >
             <Reveal>
               <ProjectPreview
                 number={activeProject.number}

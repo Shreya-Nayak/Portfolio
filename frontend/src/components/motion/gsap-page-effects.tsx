@@ -9,8 +9,12 @@ gsap.registerPlugin(ScrollTrigger);
 export function GsapPageEffects() {
   useLayoutEffect(() => {
     const context = gsap.context(() => {
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const progress = document.querySelector<HTMLElement>("[data-scroll-progress]");
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      const progress = document.querySelector<HTMLElement>(
+        "[data-scroll-progress]",
+      );
 
       if (progress) {
         gsap.set(progress, { scaleX: 0, transformOrigin: "left center" });
@@ -29,7 +33,8 @@ export function GsapPageEffects() {
       }
 
       sections.forEach((section) => {
-        const items = section.querySelectorAll<HTMLElement>("[data-reveal-item]");
+        const items =
+          section.querySelectorAll<HTMLElement>("[data-reveal-item]");
         gsap.fromTo(
           items.length ? items : section,
           { autoAlpha: 0, y: 28 },

@@ -46,7 +46,7 @@ class KnowledgeChunkRow(Base):
 class VectorStore:
     """Persistent PostgreSQL + pgvector store for grounded knowledge chunks."""
 
-    def __init__(self, database_url: str) -> None:
+    def __init__(self, database_url: str, initialize_schema: bool = False) -> None:
         if not database_url:
             raise RuntimeError("DATABASE_URL is required for PostgreSQL knowledge storage")
         if database_url.startswith("postgresql://"):
@@ -54,15 +54,24 @@ class VectorStore:
         self.engine: Engine = create_engine(database_url, pool_pre_ping=True, pool_recycle=1800)
         self.session_factory = sessionmaker(self.engine, expire_on_commit=False)
         try:
-            with self.engine.begin() as connection:
-                connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-            Base.metadata.create_all(self.engine)
-            self._ensure_vector_index()
+            self.ping()
+            if initialize_schema:
+                self.initialize_schema()
         except Exception as error:
-            self.engine.dispose()
+            self.close()
             raise RuntimeError(
                 "Could not initialize PostgreSQL/pgvector. Check DATABASE_URL and ensure pgvector is available."
             ) from error
+
+    def ping(self) -> None:
+        with self.engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+
+    def initialize_schema(self) -> None:
+        with self.engine.begin() as connection:
+            connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        Base.metadata.create_all(self.engine)
+        self._ensure_vector_index()
 
     def _ensure_vector_index(self) -> None:
         with self.engine.begin() as connection:

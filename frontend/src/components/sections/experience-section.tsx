@@ -5,7 +5,11 @@ import { experienceEntries } from "@/lib/data";
 
 export function ExperienceSection() {
   return (
-    <section id="experience" data-reveal-section className="scroll-mt-28 py-20 sm:py-24 lg:py-28">
+    <section
+      id="experience"
+      data-reveal-section
+      className="scroll-mt-28 py-20 sm:py-24 lg:py-28"
+    >
       <Container>
         <div className="space-y-12">
           <SectionHeader
@@ -23,7 +27,10 @@ export function ExperienceSection() {
                   key={`${entry.period}-${entry.role}`}
                   delay={index * 0.06}
                 >
-                  <article data-reveal-item className="grid gap-4 rounded-[1.5rem] border border-border/60 bg-white/3 p-5 sm:p-6 lg:grid-cols-[13rem_2rem_1fr] lg:items-start lg:p-7">
+                  <article
+                    data-reveal-item
+                    className="grid gap-4 rounded-[1.5rem] border border-border/60 bg-white/3 p-5 sm:p-6 lg:grid-cols-[13rem_2rem_1fr] lg:items-start lg:p-7"
+                  >
                     <div className="lg:pt-1">
                       <p className="text-tech text-primary">{entry.period}</p>
                     </div>

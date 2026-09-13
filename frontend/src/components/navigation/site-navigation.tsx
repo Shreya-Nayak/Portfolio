@@ -118,7 +118,10 @@ export function SiteNavigation() {
           aria-label={`${profile.name} home`}
         >
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white/5 text-tech text-primary">
-            {profile.name.split(" ").map((part) => part[0]).join("")}
+            {profile.name
+              .split(" ")
+              .map((part) => part[0])
+              .join("")}
           </span>
           <span className="hidden sm:block">
             <span className="block text-sm font-medium text-foreground">
